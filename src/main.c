@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 200809L
 #include <pulse/error.h>
 #include <pulse/pulseaudio.h>
 #include <pulse/simple.h>
@@ -5,7 +6,24 @@
 #include <stdio.h>
 #include "analysis.h"
 #include "fft.h"
+#include <signal.h>
+#include <time.h>
+#include <unistd.h>
 
+void cleanup(int sig)
+{
+    (void)sig;
+
+    printf("\033[0m");     // reset color
+    printf("\033[?25h");   // show cursor
+    printf("\033[4 q");    // underline cursor
+    printf("\033[?1049l"); // leave alternate screen if used
+    printf("\n");
+
+    fflush(stdout);
+
+    _exit(0);
+}
 pa_mainloop *m_pulseaudio_mainloop;
 
 void print_banner(void) { 
@@ -27,12 +45,43 @@ void cb(__attribute__((unused))pa_context *pulseaudio_context,
 	char *source = (char *)userdata;
 	strcpy(source, i->default_sink_name);
 	strcat(source, ".monitor");
-	printf("Monitor source: %s\n", source);
+	//printf("Monitor source: %s\n", source);
 
     pa_mainloop_quit(
         m_pulseaudio_mainloop,
         0
     );
+}
+
+void print_metadata(void)
+{
+    FILE *fp;
+
+    char artist[256] = "Unknown Artist";
+    char title[256]  = "Unknown Song";
+
+    fp = popen(
+        "playerctl metadata --format '{{ artist }}\\n{{ title }}'",
+        "r"
+    );
+
+    if (fp == NULL)
+        return;
+
+    if (fgets(artist, sizeof(artist), fp) == NULL)
+        strcpy(artist, "Unknown Artist");
+
+    if (fgets(title, sizeof(title), fp) == NULL)
+        strcpy(title, "Unknown Song");
+
+    pclose(fp);
+
+    artist[strcspn(artist, "\n")] = '\0';
+    title[strcspn(title, "\n")] = '\0';
+
+    printf("♫ %s\n", artist);
+    //printf("  %s\n", title);
+    //printf("%s - %s\n", artist, title);
 }
 
 void context_state_callback(
@@ -45,7 +94,7 @@ void context_state_callback(
     switch (state) {
 
         case PA_CONTEXT_READY:
-            printf("PulseAudio context is ready!\n");
+            //printf("PulseAudio context is ready!\n");
 
             pa_context_get_server_info(
                 context,
@@ -70,7 +119,21 @@ void context_state_callback(
 }
 
 int main (){
-	print_banner();
+    
+    signal(SIGINT, cleanup);
+
+/* Clear terminal once */
+printf("\033[2J");
+printf("\033[H");
+
+print_banner();
+print_metadata();
+
+printf("\n");
+
+printf("\033[?25l");
+fflush(stdout);
+printf("\033[?25l");   // hide cursor
 	char source[1024] = {0};
 	size_t buffer_size = 4096;
 	unsigned char buf[buffer_size];
@@ -160,12 +223,6 @@ int main (){
 
         return 1;
     }
-
-
-    printf("Successfully connected to audio source!\n");
-
-    printf("\033[2J");   // clear screen
-    printf("\033[H");    // move cursor to top-left
     while (1) {
 
         if (pa_simple_read(

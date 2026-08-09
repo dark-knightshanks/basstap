@@ -3,6 +3,6 @@
 
 #include <stddef.h>
 
-extern void stereoaudio_analysis(unsigned char buf[], size_t buffer_size);
+extern void stereoaudio_sampling(unsigned char buf[], size_t buffer_size);
 void dft_analyze(unsigned char buf[], size_t buffer_size);
 #endif

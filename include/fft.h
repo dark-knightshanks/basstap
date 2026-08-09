@@ -8,6 +8,10 @@ double real;
 double imag;
 }Complex;
 
-
+void dft(
+    const double *input,
+    Complex *output,
+    int N
+);
 
 #endif

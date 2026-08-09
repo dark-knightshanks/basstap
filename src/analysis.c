@@ -2,26 +2,17 @@
 #include <string.h>
 #include <math.h>
 #include <stdint.h>
-
 #include "analysis.h"
 #include "fft.h"
 
-
 #define MAX_RMS      30000.0
 #define MAX_BAR      30
-
 #define DFT_SIZE     1024
 #define SAMPLE_RATE  44100.0
-
 #define NUM_BARS     32
 #define MAX_HEIGHT   20
-
-
 #define RESET     "\033[0m"
 #define BAR_COLOR "\033[38;5;208m"
-// ============================================================
-// STEREO RMS METER
-// ============================================================
 
 void stereoaudio_sampling(unsigned char buf[], size_t buffer_size)
 {
@@ -35,11 +26,6 @@ void stereoaudio_sampling(unsigned char buf[], size_t buffer_size)
     int64_t RMS_L = 0;
     int64_t RMS_R = 0;
 
-
-    // --------------------------------------------------------
-    // Calculate RMS
-    // --------------------------------------------------------
-
     for (int i = 0; i < frames; i++) {
 
         int16_t L = samples[i * 2];
@@ -52,11 +38,6 @@ void stereoaudio_sampling(unsigned char buf[], size_t buffer_size)
 
     double rms_L = sqrt((double)RMS_L / frames);
     double rms_R = sqrt((double)RMS_R / frames);
-
-
-    // --------------------------------------------------------
-    // Logarithmic normalization
-    // --------------------------------------------------------
 
     double norm_L =
         log10(1.0 + rms_L) /
@@ -74,10 +55,6 @@ void stereoaudio_sampling(unsigned char buf[], size_t buffer_size)
         norm_R = 1.0;
 
 
-    // --------------------------------------------------------
-    // Fast attack / slow decay
-    // --------------------------------------------------------
-
     if (norm_L > display_L)
         display_L = norm_L;
     else
@@ -93,10 +70,6 @@ void stereoaudio_sampling(unsigned char buf[], size_t buffer_size)
     int bar_L = (int)(display_L * MAX_BAR);
     int bar_R = (int)(display_R * MAX_BAR);
 
-
-    // --------------------------------------------------------
-    // Terminal output
-    // --------------------------------------------------------
 
     printf("\033[H");
 
@@ -114,19 +87,13 @@ void stereoaudio_sampling(unsigned char buf[], size_t buffer_size)
         printf("▆ ");
 
     printf("\n");
-
-
     fflush(stdout);
 }
 
 
-
-// ============================================================
-// DFT SPECTRUM ANALYZER
-// ============================================================
-
 void dft_analyze(unsigned char buf[], size_t buffer_size)
 {
+	
     int16_t *samples = (int16_t *)buf;
 
 
@@ -141,11 +108,6 @@ void dft_analyze(unsigned char buf[], size_t buffer_size)
     if (frames < DFT_SIZE)
         return;
 
-
-    // ========================================================
-    // STEREO -> MONO
-    // ========================================================
-
     for (int i = 0; i < DFT_SIZE; i++) {
 
         int16_t L = samples[i * 2];
@@ -155,17 +117,9 @@ void dft_analyze(unsigned char buf[], size_t buffer_size)
             ((double)L + (double)R) / 2.0;
     }
 
-
-    // ========================================================
-    // REMOVE DC OFFSET
-    // ========================================================
-
     double mean = 0.0;
-
-
     for (int i = 0; i < DFT_SIZE; i++)
         mean += input[i];
-
 
     mean /= DFT_SIZE;
 
@@ -173,20 +127,9 @@ void dft_analyze(unsigned char buf[], size_t buffer_size)
     for (int i = 0; i < DFT_SIZE; i++)
         input[i] -= mean;
 
-
-    // ========================================================
-    // DFT
-    // ========================================================
-
     dft(input, output, DFT_SIZE);
 
-
-    // ========================================================
-    // CREATE FREQUENCY BARS
-    // ========================================================
-
     double bar_magnitude[NUM_BARS] = {0};
-
 
     for (int k = 1; k < DFT_SIZE / 2; k++) {
 
@@ -199,11 +142,6 @@ void dft_analyze(unsigned char buf[], size_t buffer_size)
         // Don't display above 16 kHz
         if (frequency > 16000.0)
             break;
-
-
-        // ----------------------------------------------------
-        // Magnitude
-        // ----------------------------------------------------
 
         double magnitude =
             sqrt(
@@ -221,8 +159,6 @@ void dft_analyze(unsigned char buf[], size_t buffer_size)
 
         double min_freq = 100.0;
         double max_freq = 16000.0;
-
-
         int bar =
             (int)(
                 log(frequency / min_freq) /
@@ -239,13 +175,7 @@ void dft_analyze(unsigned char buf[], size_t buffer_size)
     }
 
 
-    // ========================================================
-    // FIND MAXIMUM MAGNITUDE
-    // ========================================================
-
     double max_magnitude = 0.0;
-
-
     for (int i = 0; i < NUM_BARS; i++) {
 
         if (bar_magnitude[i] > max_magnitude)
@@ -258,13 +188,7 @@ void dft_analyze(unsigned char buf[], size_t buffer_size)
         max_magnitude = 1.0;
 
 
-    // ========================================================
-    // CONVERT MAGNITUDE -> BAR HEIGHT
-    // ========================================================
-
     int heights[NUM_BARS];
-
-
     for (int i = 0; i < NUM_BARS; i++) {
 
         double normalized =
@@ -285,23 +209,6 @@ void dft_analyze(unsigned char buf[], size_t buffer_size)
     }
 
 
-    // ========================================================
-    // CLEAR TERMINAL
-    // ========================================================
-
-    printf("\033[H");
-    printf("\033[J");
-
-
-    // Hide cursor
-    printf("\033[?25l");
-
-
-
-    // ========================================================
-    // DRAW VERTICAL SPECTRUM
-    // ========================================================
-
     for (int row = MAX_HEIGHT; row >= 1; row--) {
 
         for (int bar = 0; bar < NUM_BARS; bar++) {
@@ -317,28 +224,20 @@ void dft_analyze(unsigned char buf[], size_t buffer_size)
         printf("\n");
     }
 
-
-    // ========================================================
-    // BASE LINE
-    // ========================================================
-
-    for (int i = 0; i < NUM_BARS; i++)
-        printf("──");
+	for (int i = 0; i < NUM_BARS; i++){
+        printf("──");}
 
     printf("\n");
 
-
-    // ========================================================
-    // FREQUENCY LABELS
-    // ========================================================
-
     printf("100Hz");
 
-    for (int i = 0; i < NUM_BARS - 1; i++)
-        printf("  ");
+    for (int i = 0; i < NUM_BARS - 1; i++){
+        printf("  ");}
 
-    printf("16kHz\n");
+    
+	printf("16kHz\n");
 
+	printf("\033[22A");
 
     fflush(stdout);
 }
