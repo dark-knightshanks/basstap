@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "analysis.h"
+#include "fft.h"
 
 pa_mainloop *m_pulseaudio_mainloop;
 
@@ -14,7 +15,7 @@ void print_banner(void) {
 	printf("██████╔╝███████║███████╗███████╗   ██║   ███████║ ██████╔╝\n"); 
 	printf("██╔══██╗██╔══██║╚════██║╚════██║   ██║   ██╔══██║ ██╔═══╝ \n"); 
 	printf("██████╔╝██║  ██║███████║███████║   ██║   ██║  ██║ ██║ \n"); 
-	printf("╚═════╝ ╚═╝ ╚═╝╚══════╝╚══════╝    ╚═╝   ╚═╝  ╚═╝ ╚═╝ \n"); 
+	printf("╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═╝ \n"); 
 	printf("\n"); printf(" PulseAudio Terminal Visualizer\n"); 
 	printf("--------------------------------------------------\n\n"); }
 
@@ -185,8 +186,9 @@ int main (){
 
         //printf("Received %zu bytes\n", buffer_size);
 
-	stereoaudio_sampling(buf, buffer_size);
-    }
+	//stereoaudio_sampling(buf, buffer_size);
+    dft_analyze(buf, buffer_size);
+}
 
     pa_simple_free(s);
 
