@@ -3,18 +3,18 @@
 #include <pulse/simple.h>
 #include <string.h>
 #include <stdio.h>
-
+#include "analysis.h"
 
 pa_mainloop *m_pulseaudio_mainloop;
 
 void print_banner(void) { 
 	printf("\n"); 
-	printf("██████╗ █████╗ ███████╗███████╗████████╗ █████╗  █████╗  ██████╗ \n"); 
-	printf("██╔══██╗██╔══██╗██╔════╝██╔════╝╚██╔══╝ ██╔══██╗██╔══██╗ ██╔══██╗\n"); 
-	printf("██████╔╝███████║███████╗███████╗ ██║    ███████║███████║ ██████╔╝\n"); 
-	printf("██╔══██╗██╔══██║╚════██║╚════██║ ██║    ██╔══██║██╔══██║ ██╔═══╝ \n"); 
-	printf("██████╔╝██║ ██║███████║███████║  ██║    ██║  ██║██║  ██║ ██║ \n"); 
-	printf("╚═════╝ ╚═╝ ╚═╝╚══════╝╚══════╝  ╚═╝    ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═╝ \n"); 
+	printf("██████╗  █████╗ ███████╗███████╗████████╗ █████╗  ██████╗ \n"); 
+	printf("██╔══██╗██╔══██╗██╔════╝██╔════╝╚  ██╔══╝██╔══██╗ ██╔══██╗\n"); 
+	printf("██████╔╝███████║███████╗███████╗   ██║   ███████║ ██████╔╝\n"); 
+	printf("██╔══██╗██╔══██║╚════██║╚════██║   ██║   ██╔══██║ ██╔═══╝ \n"); 
+	printf("██████╔╝██║  ██║███████║███████║   ██║   ██║  ██║ ██║ \n"); 
+	printf("╚═════╝ ╚═╝ ╚═╝╚══════╝╚══════╝    ╚═╝   ╚═╝  ╚═╝ ╚═╝ \n"); 
 	printf("\n"); printf(" PulseAudio Terminal Visualizer\n"); 
 	printf("--------------------------------------------------\n\n"); }
 
@@ -94,11 +94,6 @@ int main (){
         pa_mainloop_free(m_pulseaudio_mainloop);
         return 1;
     }
-
-
-
-    
-
     if (pa_context_connect(context, NULL, 0, NULL) < 0) {
         fprintf(stderr, "Failed to connect to PulseAudio\n");
 
@@ -168,7 +163,8 @@ int main (){
 
     printf("Successfully connected to audio source!\n");
 
-
+    printf("\033[2J");   // clear screen
+    printf("\033[H");    // move cursor to top-left
     while (1) {
 
         if (pa_simple_read(
@@ -187,7 +183,9 @@ int main (){
             break;
         }
 
-        printf("Received %zu bytes\n", buffer_size);
+        //printf("Received %zu bytes\n", buffer_size);
+
+	stereoaudio_sampling(buf, buffer_size);
     }
 
     pa_simple_free(s);
@@ -195,9 +193,6 @@ int main (){
     pa_mainloop_free(m_pulseaudio_mainloop);
 
     return 0;
-
-
-
 
 }
 
