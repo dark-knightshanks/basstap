@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 
-int source_found = 0;
+
 pa_mainloop *m_pulseaudio_mainloop;
 
 void print_banner(void) { 
@@ -27,7 +27,7 @@ void cb(__attribute__((unused))pa_context *pulseaudio_context,
 	strcpy(source, i->default_sink_name);
 	strcat(source, ".monitor");
 	printf("Monitor source: %s\n", source);
-	source_found = 1;
+
     pa_mainloop_quit(
         m_pulseaudio_mainloop,
         0
