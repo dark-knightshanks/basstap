@@ -7,7 +7,7 @@
 ██╔══██╗██╔══██║╚════██║╚════██║   ██║   ██╔══██║ ██╔═══╝ 
 ██████╔╝██║  ██║███████║███████║   ██║   ██║  ██║ ██║ 
 ╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═╝
-
+```
 A terminal-based real-time audio spectrum visualizer written in C for PulseAudio.
 
 ## Features
